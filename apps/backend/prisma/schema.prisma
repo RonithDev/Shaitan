@@ -1,0 +1,71 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String        @id @default(uuid())
+  username     String        @unique
+  email        String        @unique
+  passwordHash String
+
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  groupsCreated Group[]      @relation("GroupCreator")
+  memberships   GroupMember[]
+  messages      Message[]
+}
+
+model Group {
+  id          String        @id @default(uuid())
+  name        String
+  createdById String
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  createdBy   User          @relation("GroupCreator", fields: [createdById], references: [id])
+  members     GroupMember[]
+  messages    Message[]
+
+  @@index([createdById])
+}
+
+model GroupMember {
+  groupId                String
+  userId                 String
+  joinedAt               DateTime @default(now())
+
+  lastDeliveredSequence  BigInt    @default(0)
+  lastReadSequence       BigInt    @default(0)
+
+  group                  Group     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user                   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([groupId, userId])
+  @@index([userId])
+}
+
+model Message {
+  id             String   @id @default(uuid())
+  groupId        String
+  senderId       String
+
+  sequenceNumber BigInt
+  content        String
+
+  createdAt      DateTime @default(now())
+
+  group          Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  sender         User     @relation(fields: [senderId], references: [id])
+
+  @@unique([groupId, sequenceNumber])
+  @@index([groupId, sequenceNumber])
+  @@index([senderId])
+}
