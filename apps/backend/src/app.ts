@@ -3,7 +3,7 @@ import express from 'express';
 import authRoutes from './auth/auth.route.js';
 import userRoutes from './users/user.router.js';
 import groupRoutes from './groups/group.router.js'
-
+import messageRoutes from './messaging/message.router.js'
 
 const app = express();
 
@@ -15,7 +15,7 @@ app.use('/api/auth', authRoutes);
 
 app.use('/api/groups', groupRoutes);
 
-
+app.use('/api/messages', messageRoutes);
 
 app.get("/", (req, res) => {
   res.json({
